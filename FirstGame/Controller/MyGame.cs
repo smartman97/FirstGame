@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Storage;
 using Microsoft.Xna.Framework.Input;
+using FirstGame.Model;
 
 namespace FirstGame.controller
 {
@@ -14,6 +15,8 @@ namespace FirstGame.controller
 	{
 		GraphicsDeviceManager graphics;
 		SpriteBatch spriteBatch;
+
+		private Player playerOne;
 
 		public MyGame ()
 		{
