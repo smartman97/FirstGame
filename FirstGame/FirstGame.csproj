@@ -50,6 +50,7 @@
     <Compile Include="Controller\Program.cs" />
     <Compile Include="Controller\MyGame.cs" />
     <Compile Include="Model\Player.cs" />
+    <Compile Include="View\Animation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Icon.png" />
