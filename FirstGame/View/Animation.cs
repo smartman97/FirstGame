@@ -81,7 +81,7 @@ namespace FirstGame.View
 
 		public int FrameWidth
 		{
-			get { return FrameWidth; }
+			get { return frameWidth; }
 			set { frameWidth = value; }
 		}
 
