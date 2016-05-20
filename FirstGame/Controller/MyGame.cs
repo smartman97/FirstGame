@@ -150,8 +150,8 @@ namespace FirstGame.controller
 			}
 
 			// Make sure that the player does not go out of bounds
-			player.Position.X = MathHelper.Clamp(player.Position.X, 0,GraphicsDevice.Viewport.Width - player.Width);
-			player.Position.Y = MathHelper.Clamp(player.Position.Y, 0,GraphicsDevice.Viewport.Height - player.Height);
+			player.Position.X = MathHelper.Clamp(player.Position.X, 0,GraphicsDevice.Viewport.Width - (player.Width / 2));
+			player.Position.Y = MathHelper.Clamp(player.Position.Y, 0,GraphicsDevice.Viewport.Height - (player.Height / 2));
 		}
 
 		/// <summary>
