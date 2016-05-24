@@ -55,6 +55,12 @@ namespace FirstGame.controller
 		TimeSpan fireTime;
 		TimeSpan previousFireTime;
 
+		Texture2D plasmaTexture;
+		List<Plasma> plasmas;
+
+		TimeSpan plasmaFireTime;
+		TimeSpan previousPlasmaFireTime;
+
 		Texture2D explosionTexture;
 		List<Animation> explosions;
 
@@ -110,6 +116,7 @@ namespace FirstGame.controller
 			random = new Random();
 
 			projectiles = new List<Projectile>();
+			plasmas = new List<Plasma> ();
 
 			explosions = new List<Animation>();
 
@@ -118,6 +125,7 @@ namespace FirstGame.controller
 
 			// Set the laser to fire every quarter second
 			fireTime = TimeSpan.FromSeconds(.15f);
+			plasmaFireTime = TimeSpan.FromSeconds(5);
             
 			base.Initialize ();
 		}
@@ -147,6 +155,7 @@ namespace FirstGame.controller
 			enemyTexture = Content.Load<Texture2D>("Animation/mineAnimation");
 
 			projectileTexture = Content.Load<Texture2D>("Texture/laser");
+			plasmaTexture = Content.Load<Texture2D> ("Texture/plasma");
 
 			explosionTexture = Content.Load<Texture2D>("Animation/explosion");
 
@@ -204,6 +213,8 @@ namespace FirstGame.controller
 			// Update the projectiles
 			UpdateProjectiles();
 
+			UpdatePlasma ();
+
 			// Update the explosions
 			UpdateExplosions(gameTime);
             
@@ -241,8 +252,8 @@ namespace FirstGame.controller
 			}
 
 			// Make sure that the player does not go out of bounds
-			player.Position.X = MathHelper.Clamp(player.Position.X, 0,GraphicsDevice.Viewport.Width - (player.Width / 2));
-			player.Position.Y = MathHelper.Clamp(player.Position.Y, 0,GraphicsDevice.Viewport.Height - (player.Height / 2));
+			player.Position.X = MathHelper.Clamp(player.Position.X, (player.Width / 2),GraphicsDevice.Viewport.Width - (player.Width / 2));
+			player.Position.Y = MathHelper.Clamp(player.Position.Y, (player.Height / 2),GraphicsDevice.Viewport.Height - (player.Height / 2));
 
 			// Fire only every interval we set as the fireTime
 			if (gameTime.TotalGameTime - previousFireTime > fireTime)
@@ -255,13 +266,25 @@ namespace FirstGame.controller
 
 				// Play the laser sound
 				laserSound.Play();
+			}
 
-				// reset score if player health goes to zero
-				if (player.Health <= 0)
-				{
-					player.Health = 100;
-					score = 0;
-				}
+			if (gameTime.TotalGameTime - previousPlasmaFireTime > plasmaFireTime)
+			{
+				// Reset our current time
+				previousPlasmaFireTime = gameTime.TotalGameTime;
+
+				// Add the plasma, but add it to the front and center of the player
+				AddPlasma(player.Position + new Vector2(player.Width / 2, 0));
+
+				// Play the laser sound
+				laserSound.Play();
+			}
+
+			// reset score if player health goes to zero
+			if (player.Health <= 0)
+			{
+				player.Health = 100;
+				score = 0;
 			}
 		}
 
@@ -294,6 +317,11 @@ namespace FirstGame.controller
 				projectiles[i].Draw(spriteBatch);
 			}
 
+			for (int i = 0; i < plasmas.Count; i++)
+			{
+				plasmas[i].Draw(spriteBatch);
+			}
+
 			// Draw the explosions
 			for (int i = 0; i < explosions.Count; i++)
 			{
@@ -301,9 +329,9 @@ namespace FirstGame.controller
 			}
 
 			// Draw the score
-			spriteBatch.DrawString(font, "score: " + score, new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
+			spriteBatch.DrawString(font, "Score: " + score, new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
 			// Draw the player health
-			spriteBatch.DrawString(font, "health: " + player.Health, new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y + 30), Color.White);
+			spriteBatch.DrawString(font, "Health: " + player.Health, new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y + 30), Color.White);
 
 			// Draw the Player
 			player.Draw(spriteBatch);
@@ -453,6 +481,13 @@ namespace FirstGame.controller
 			projectiles.Add(projectile);
 		}
 
+		private void AddPlasma(Vector2 position)
+		{
+			Plasma plasma = new Plasma (); 
+			plasma.Initialize(GraphicsDevice.Viewport, plasmaTexture,position); 
+			plasmas.Add(plasma);
+		}
+
 		private void UpdateProjectiles()
 		{
 			// Update the Projectiles
@@ -463,6 +498,20 @@ namespace FirstGame.controller
 				if (projectiles[i].Active == false)
 				{
 					projectiles.RemoveAt(i);
+				} 
+			}
+		}
+
+		private void UpdatePlasma()
+		{
+			// Update the Projectiles
+			for (int i = plasmas.Count - 1; i >= 0; i--) 
+			{
+				plasmas[i].Update();
+
+				if (plasmas[i].Active == false)
+				{
+					plasmas.RemoveAt(i);
 				} 
 			}
 		}
