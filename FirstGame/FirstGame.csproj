@@ -56,6 +56,7 @@
     <Compile Include="Model\Projectile.cs" />
     <Compile Include="Model\FreezeBeam.cs" />
     <Compile Include="Model\Plasma.cs" />
+    <Compile Include="Model\Heart.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Icon.png" />

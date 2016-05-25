@@ -48,6 +48,17 @@ namespace FirstGame.controller
 		// A random number generator
 		Random random;
 
+		// Hearts
+		Texture2D heartTexture;
+		List<Heart> hearts;
+
+		// The rate at which the enemies appear
+		TimeSpan heartSpawnTime;
+		TimeSpan previousHeartSpawnTime;
+
+		// A random number generator
+		Random randomHeart;
+
 		Texture2D projectileTexture;
 		List<Projectile> projectiles;
 
@@ -115,6 +126,18 @@ namespace FirstGame.controller
 			// Initialize our random number generator
 			random = new Random();
 
+			// Initialize the hearts list
+			hearts = new List<Heart> ();
+
+			// Set the time keepers to zero
+			previousHeartSpawnTime = TimeSpan.Zero;
+
+			// Used to determine how fast enemy respawns
+			heartSpawnTime = TimeSpan.FromSeconds(12f);
+
+			// Initialize our random number generator
+			randomHeart = new Random();
+
 			projectiles = new List<Projectile>();
 			plasmas = new List<Plasma> ();
 
@@ -153,9 +176,10 @@ namespace FirstGame.controller
 			bgLayer2.Initialize(Content, "Texture/bgLayer2", GraphicsDevice.Viewport.Width, -2);
 
 			enemyTexture = Content.Load<Texture2D>("Animation/mineAnimation");
+			heartTexture = Content.Load<Texture2D>("Texture/heart");
 
 			projectileTexture = Content.Load<Texture2D>("Texture/laser");
-			plasmaTexture = Content.Load<Texture2D> ("Texture/plasma");
+			plasmaTexture = Content.Load<Texture2D> ("Texture/plasmaSmall");
 
 			explosionTexture = Content.Load<Texture2D>("Animation/explosion");
 
@@ -206,6 +230,8 @@ namespace FirstGame.controller
 
 			// Update the enemies
 			UpdateEnemies(gameTime);
+
+			UpdateHearts (gameTime);
 
 			// Update the collision
 			UpdateCollision();
@@ -311,6 +337,11 @@ namespace FirstGame.controller
 				enemies[i].Draw(spriteBatch);
 			}
 
+			for (int i = 0; i < hearts.Count; i++)
+			{
+				hearts[i].Draw(spriteBatch);
+			}
+
 			// Draw the Projectiles
 			for (int i = 0; i < projectiles.Count; i++)
 			{
@@ -399,6 +430,47 @@ namespace FirstGame.controller
 			}
 		}
 
+		private void AddHeart()
+		{ 
+			Heart heart = new Heart (); 
+
+			Vector2 position = new Vector2(GraphicsDevice.Viewport.Width + heartTexture.Width / 2, randomHeart.Next(0, GraphicsDevice.Viewport.Height));
+
+			heart.Initialize(heartTexture, position); 
+
+			hearts.Add(heart);
+		}
+
+		private void UpdateHearts(GameTime gameTime)
+		{
+			// Spawn a new heart every 12 seconds
+			if (gameTime.TotalGameTime - previousHeartSpawnTime > heartSpawnTime) 
+			{
+				previousHeartSpawnTime = gameTime.TotalGameTime;
+
+				// Add an Heart
+				AddHeart();
+			}
+
+			// Update the hearts
+			for (int i = hearts.Count - 1; i >= 0; i--) 
+			{
+				hearts[i].Update(gameTime);
+
+				if (hearts[i].Active == false)
+				{
+					// If not active and health <= 0
+					if (hearts[i].Health <= 0)
+					{
+						//Add to the player's score
+						score += hearts[i].Value;
+					}
+
+					hearts.RemoveAt(i);
+				} 
+			}
+		}
+
 		private void UpdateExplosions(GameTime gameTime)
 		{
 			for (int i = explosions.Count - 1; i >= 0; i--)
@@ -427,10 +499,7 @@ namespace FirstGame.controller
 			// Do the collision between the player and the enemies
 			for (int i = 0; i <enemies.Count; i++)
 			{
-				rectangle2 = new Rectangle((int)enemies[i].Position.X,
-					(int)enemies[i].Position.Y,
-					enemies[i].Width,
-					enemies[i].Height);
+				rectangle2 = new Rectangle((int)enemies[i].Position.X, (int)enemies[i].Position.Y, enemies[i].Width, enemies[i].Height);
 
 				// Determine if the two objects collided with each
 				// other
@@ -443,6 +512,28 @@ namespace FirstGame.controller
 					// Since the enemy collided with the player
 					// destroy it
 					enemies[i].Health = 0;
+
+					// If the player health is less than zero we died
+					if (player.Health <= 0)
+						player.Active = false; 
+				}
+			}
+
+			for (int i = 0; i < hearts.Count; i++)
+			{
+				rectangle2 = new Rectangle((int) hearts[i].Position.X, (int)hearts[i].Position.Y, hearts[i].Width, hearts[i].Height);
+
+				// Determine if the two objects collided with each
+				// other
+				if(rectangle1.Intersects(rectangle2))
+				{
+					// Subtract the health from the player based on
+					// the enemy damage
+					player.Health -= hearts[i].Damage;
+
+					// Since the enemy collided with the player
+					// destroy it
+					hearts[i].Health = 0;
 
 					// If the player health is less than zero we died
 					if (player.Health <= 0)
@@ -469,6 +560,23 @@ namespace FirstGame.controller
 					{
 						enemies[j].Health -= projectiles[i].Damage;
 						projectiles[i].Active = false;
+					}
+				}
+			}
+
+			for (int i = 0; i < plasmas.Count; i++)
+			{
+				for (int j = 0; j < enemies.Count; j++)
+				{
+					// Create the rectangles we need to determine if we collided with each other
+					rectangle1 = new Rectangle((int)plasmas[i].Position.X - plasmas[i].Width / 2,(int)plasmas[i].Position.Y - plasmas[i].Height / 2,plasmas[i].Width, plasmas[i].Height);
+
+					rectangle2 = new Rectangle((int)enemies[j].Position.X - enemies[j].Width / 2, (int)enemies[j].Position.Y - enemies[j].Height / 2, enemies[j].Width, enemies[j].Height);
+
+					// Determine if the two objects collided with each other
+					if (rectangle1.Intersects(rectangle2))
+					{
+						enemies[j].Health -= plasmas[i].Damage;
 					}
 				}
 			}
