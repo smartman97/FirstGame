@@ -133,7 +133,7 @@ namespace FirstGame.controller
 			previousHeartSpawnTime = TimeSpan.Zero;
 
 			// Used to determine how fast enemy respawns
-			heartSpawnTime = TimeSpan.FromSeconds(12f);
+			heartSpawnTime = TimeSpan.FromSeconds(30f);
 
 			// Initialize our random number generator
 			randomHeart = new Random();
